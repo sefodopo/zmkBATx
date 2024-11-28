@@ -65,7 +65,7 @@ public slots:
 
 signals:
     void statusInfoChanged(QString info, bool Status);
-    void dataReceivedBatteryInfo(const QHash<DeviceInfoBluez::BatteryType, int>  &dataBatteryInfo);
+    void dataReceivedBatteryInfo(const QHash<QString, int>  &dataBatteryInfo);
     void connectedChanged(bool connected);
     void dataConnectedToDevice(bool status);
     void devicesNamesChanged(QStringList devices);
@@ -100,7 +100,7 @@ private:
     std::vector<std::shared_ptr<SimpleBluez::Device>> m_peripherals;
     std::vector<std::shared_ptr<SimpleBluez::Adapter>> m_adapters;
     std::shared_ptr<SimpleBluez::Adapter> m_adapter_defualt;
-    QHash<DeviceInfoBluez::BatteryType, int> hDeviceBatteryInfo;
+    QHash<QString, int> hDeviceBatteryInfo;
 
 
     bool mConnectedDevice;

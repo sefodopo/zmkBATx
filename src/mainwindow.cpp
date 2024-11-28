@@ -10,6 +10,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     pref = AppSettings::getInstance();
+    batteryIndicators = new QMap<QString, BatteryIndicator*>();
 
     trayIcon = new QSystemTrayIcon(this);
     trayIcon->setIcon(QIcon(":/icons/main.png"));
@@ -48,8 +49,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_bleInterfaceBluez, &BLEInterfaceBluez::currentDeviceChanged,
             [this] (int deviceID){
         ui->devicesComboBox->setCurrentIndex(deviceID);
-        ui->progBarCentral->setValue(0);
-        ui->progBarPeripheral->setValue(0);
+        this->clearBatteryWidgets();
     });
     connect(m_bleInterfaceBluez, &BLEInterfaceBluez::statusInfoChanged,
             [this](QString info, bool){
@@ -59,8 +59,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_bleInterfaceBluez, &BLEInterfaceBluez::connectedChanged,
             [this](bool connected){
         if (!connected){
-            ui->progBarCentral->setValue(0);
-            ui->progBarPeripheral->setValue(0);
+            this->clearBatteryWidgets();
             this->statusBar()->showMessage("");
             this->trayIcon->setIcon(QIcon(":/icons/main.png"));
         }
@@ -72,6 +71,7 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
+    delete batteryIndicators;
 }
 
 void MainWindow::show_me(){
@@ -99,10 +99,31 @@ void MainWindow::on_connectButton_clicked()
     m_bleInterfaceBluez->connectCurrentDevice();
 }
 
-void MainWindow::dataReceivedBatteryInfo(const QHash<DeviceInfoBluez::BatteryType, int>  &dataBatteryInfo){
-    ui->progBarCentral->setValue(dataBatteryInfo[DeviceInfoBluez::BatteryType::Central]);
-    ui->progBarPeripheral->setValue(dataBatteryInfo[DeviceInfoBluez::BatteryType::Peripheral]);
-    int battery_level = dataBatteryInfo[DeviceInfoBluez::BatteryType::Central];
+void MainWindow::dataReceivedBatteryInfo(const QHash<QString, int>  &dataBatteryInfo){
+    QString tip = QString("%1")
+        .arg(ui->devicesComboBox->currentText().split(QRegularExpression("\\s+"), Qt::SkipEmptyParts)[0]);
+    int battery_level = 100;
+    bool indicatorsChanged = false;
+    for (auto i = dataBatteryInfo.cbegin(), end = dataBatteryInfo.cend(); i != end; ++i){
+        BatteryIndicator* label;
+        if (!batteryIndicators->contains(i.key())) {
+            label = new BatteryIndicator(i.key(), this);
+            (*batteryIndicators)[i.key()] = label;
+            indicatorsChanged = true;
+            ui->gBoxBatteryInfo->layout()->addWidget(label);
+        } else {
+            label = (*batteryIndicators)[i.key()];
+        }
+        label->setPercentage(i.value());
+        battery_level = battery_level < i.value() ? battery_level : i.value();
+    }
+    for (auto i = batteryIndicators->cbegin(), end = batteryIndicators->cend(); i != end; ++i){
+      tip.append(QString("\n%1: %2")
+                       .arg(i.key())
+                       .arg(dataBatteryInfo[i.key()]));
+      if (indicatorsChanged) 
+        ui->gBoxBatteryInfo->layout()->addWidget(i.value());
+    }
     if (battery_level <= 75 && battery_level >= 50)
         trayIcon->setIcon(QIcon(":/icons/m-battery.png"));
     else if (battery_level >= 75 && battery_level <= 100)
@@ -111,12 +132,7 @@ void MainWindow::dataReceivedBatteryInfo(const QHash<DeviceInfoBluez::BatteryTyp
         trayIcon->setIcon(QIcon(":/icons/half-battery.png"));
     else
         trayIcon->setIcon(QIcon(":/icons/low-battery.png"));
-    trayIcon->setToolTip(
-        QString("%1\nCentral: %2%\nPeripheral: %3%")
-            .arg(ui->devicesComboBox->currentText().split(QRegularExpression("\\s+"), Qt::SkipEmptyParts)[0])
-            .arg(dataBatteryInfo[DeviceInfoBluez::BatteryType::Central])
-            .arg(dataBatteryInfo[DeviceInfoBluez::BatteryType::Peripheral])
-        );
+    trayIcon->setToolTip(tip);
 }
 
 
@@ -140,3 +156,9 @@ void MainWindow::on_disconnectButton_clicked()
     ui->disconnectButton->setEnabled(false);
 }
 
+void MainWindow::clearBatteryWidgets() {
+    for (auto i = batteryIndicators->cbegin(), end = batteryIndicators->cend(); i != end; ++i){
+        delete i.value();
+    }
+    batteryIndicators->clear();
+}

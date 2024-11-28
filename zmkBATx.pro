@@ -14,17 +14,20 @@ TEMPLATE = app
 SOURCES += src/main.cpp\
     src/about.cpp \
     src/appSettings.cpp \
+    src/batteryindicator.cpp \
     src/bleinterfacebluez.cpp \
         src/mainwindow.cpp
 
 HEADERS  += src/mainwindow.h \
     src/about.h \
     src/appSettings.h \
+    src/batteryindicator.h \
     src/bleinterfacebluez.h
 
 INCLUDEPATH += src/ src/thirdparty/
 
 FORMS    += src/forms/mainwindow.ui \
+    src/batteryindicator.ui \
     src/forms/about.ui
 
 RESOURCES += \

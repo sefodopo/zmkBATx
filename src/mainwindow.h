@@ -3,9 +3,11 @@
 
 #include "appSettings.h"
 #include "bleinterfacebluez.h"
+#include "batteryindicator.h"
 #include <QMenu>
 #include <QSystemTrayIcon>
 #include <QMainWindow>
+#include <QLabel>
 
 namespace Ui {
 class MainWindow;
@@ -37,11 +39,13 @@ private:
     QAction *Show_action;
     QAction *Preferences_action;
     QAction *Quit_action;
+    QMap<QString, BatteryIndicator*> *batteryIndicators;
     AppSettings *pref;
 
     void dataReceived(QByteArray data);
-    void dataReceivedBatteryInfo(const QHash<DeviceInfoBluez::BatteryType, int>  &dataBatteryInfo);
+    void dataReceivedBatteryInfo(const QHash<QString, int>  &dataBatteryInfo);
     void dataConnectedToDevice(const bool data);
+    void clearBatteryWidgets();
 };
 
 #endif // MAINWINDOW_H

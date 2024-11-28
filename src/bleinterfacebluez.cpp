@@ -5,7 +5,6 @@
 #include <QSettings>
 #include <src/thirdparty/simplebluez/Exceptions.h>
 
-
 unsigned long hex2dec(std::string hex)
 {
     // font: https://stackoverflow.com/questions/11031159/c-converting-hexadecimal-to-decimal
@@ -96,14 +95,14 @@ void BLEInterfaceBluez::readCharacteristicByService(const std::shared_ptr<Simple
                 QBluetoothUuid((QBluetoothUuid::DescriptorType::CharacteristicUserDescription)).toString(QUuid::WithoutBraces).toStdString()
 
             );
-            QByteArray hex = QByteArray::fromHex(QString::fromStdString(descp->value()).toLatin1().toHex());
+            QByteArray hex = QByteArray::fromHex(QString::fromStdString(descp->read()).toLatin1().toHex());
             QString str = QString::fromUtf8(hex);
             qDebug() << "descriptors : " << str;
             qDebug() << "descriptors : " << descp->uuid();
 
-            this->hDeviceBatteryInfo[DeviceInfoBluez::BatteryType::Peripheral] = battery_value;
+            this->hDeviceBatteryInfo[str] = battery_value;
         } catch (SimpleBluez::Exception::DescriptorNotFoundException) {
-            this->hDeviceBatteryInfo[DeviceInfoBluez::BatteryType::Central] = battery_value;
+            this->hDeviceBatteryInfo["Central"] = battery_value;
             continue;
         }
     }
