@@ -8,8 +8,8 @@ use this, then make an issue and I can work on moving this to the AUR.
 1. Ensure `base-devel` is installed
 2. Get pkgbuild files `git clone --branch arch-packages --depth 1 https://github.com/sefodopo/zmkBATx`
 3. Build and install simpleble:
-    a. Enter directory `cd zmkBATx/simpleble`
-    b. Build and install package `makepkg -sci`
+    1. Enter directory `cd zmkBATx/simpleble`
+    2. Build and install package `makepkg -sci`
 4. Build and install zmkBATx:
-    a. Enter directory `cd ../zmkbatx`
-    b. Build and install package `makepkg -sci`
+    1. Enter directory `cd ../zmkbatx`
+    2. Build and install package `makepkg -sci`
